@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3/build/web/hack.css">
+</head>
+<body>
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-md-9">
+        <p class="title">Text Message Analysis with BERT Embeddings</p>
+        <p class="author">July 2020
+          <br>Reena Yuan and Nisha Prabhakar</p>
+
+        <p class="body-text">This summer, we used our text messages as our dataset and Google's pretrained NLP model BERT
+        to help us analyze our data in several different ways. We started off by using BERT embeddings and scikit-learn
+        in order to classify our text messages by author. Then, we used T-SNE to visualize the embeddings and see how our
+        conversations were affected by COVID-19. </p>
+        <a name="part1"></a>
+        <p class="heading">Part 1: Text Message Classification</p>
+        <p class="body-text">
+          We wanted to see how accurate BERT embeddings, specifically for whole sentences, were by seeing how accurately it
+          could be used to classify text messages. We did this by using the vector embeddings to train a logistic regression model.
+        </p>
+        <p class="subheading">
+          Importing packages and libraries
+        </p>
+        <p class="body-text">
+          We used transformers in order to use the DistilBert model, as well as several libraries including Pytorch, numpy, scikit and pandas.
+        </p>
+        <p class="code">code?</p>
+      </div>
+      <div class="col-md-3" id="sticky-sidebar">
+        <a href="#part1">1. Text Message Classification</a>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

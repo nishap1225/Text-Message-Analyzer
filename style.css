@@ -1,0 +1,27 @@
+.code {
+  font-family: Hack, monospace;
+  background-color: #D3D3D3;
+}
+.title {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 38px;
+}
+.author {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  color: gray;
+}
+.heading {
+  font-family: "Trebuchet MS", Helvetica, sans-serif;
+  font-size: 25px;
+  font-weight: bold;
+}
+.subheading {
+  font-family: "Trebuchet MS", Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+}
+.body-text {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 20px;
+}
