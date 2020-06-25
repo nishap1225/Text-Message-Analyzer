@@ -18,23 +18,44 @@
         <p class="body-text">This summer, we used our text messages as our dataset and Google's pretrained NLP model BERT
         to help us analyze our data in several different ways. We started off by using BERT embeddings and scikit-learn
         in order to classify our text messages by author. Then, we used T-SNE to visualize the embeddings and see how our
-        conversations were affected by COVID-19. </p>
+        conversations were affected by COVID-19. Feel free to view our code through
+        <a href="https://colab.research.google.com/drive/199_uyqz7nc5aTBdIykGcwGMIYaGMsXDF?usp=sharing">Google COLAB.</a></p>
         <a name="part1"></a>
         <p class="heading">Part 1: Text Message Classification</p>
         <p class="body-text">
           We wanted to see how accurate BERT embeddings, specifically for whole sentences, were by seeing how accurately it
           could be used to classify text messages. We did this by using the vector embeddings to train a logistic regression model.
         </p>
+        <a name="import1"></a>
         <p class="subheading">
           Importing packages and libraries
         </p>
         <p class="body-text">
           We used transformers in order to use the DistilBert model, as well as several libraries including Pytorch, numpy, scikit and pandas.
         </p>
-        <p class="code">code?</p>
+        <p class="code">!pip install transformers
+          <br>import numpy as np
+          <br>import pandas as pd
+          <br>from sklearn.model_selection import train_test_split
+          <br>from sklearn.linear_model import LogisticRegression
+          <br>from sklearn.model_selection import GridSearchCV
+          <br>from sklearn.model_selection import cross_val_score
+          <br>import torch
+          <br>import transformers as ppb
+          <br>import warnings
+          <br>warnings.filterwarnings('ignore')
+          <br>from google.colab import files
+          <br>from datetime import datetime as datetime
+          <br>import io
+        </p>
+        <a name="uploadingprocessing"></a>
+        <p class="subheading">Uploading and processing data files</p>
       </div>
       <div class="col-md-3" id="sticky-sidebar">
         <a href="#part1">1. Text Message Classification</a>
+        &nbsp;&nbsp;&nbsp;&nbsp;<a href="#import1">Importing packages and libraries</a>
+        &nbsp;&nbsp;&nbsp;&nbsp;<a href="#uploadingprocessing">Uploading and processing data files</a>
+
       </div>
     </div>
 

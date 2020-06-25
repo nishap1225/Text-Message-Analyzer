@@ -1,6 +1,7 @@
 .code {
   font-family: Hack, monospace;
-  background-color: #D3D3D3;
+  background-color: #DCDCDC;
+  padding: 10px 10px 10px 10px;
 }
 .title {
   font-family: "Times New Roman", Times, serif;
