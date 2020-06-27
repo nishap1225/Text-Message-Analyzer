@@ -19,20 +19,21 @@
         to help us analyze our data in several different ways. We started off by using BERT embeddings and scikit-learn
         in order to classify our text messages by author. Then, we used T-SNE to visualize the embeddings and see how our
         conversations were affected by COVID-19. Feel free to view our code through
-        <a href="https://colab.research.google.com/drive/199_uyqz7nc5aTBdIykGcwGMIYaGMsXDF?usp=sharing">Google COLAB.</a></p>
-        <a name="part1"></a>
+        <a href="https://colab.research.google.com/drive/199_uyqz7nc5aTBdIykGcwGMIYaGMsXDF?usp=sharing">Google COLAB.</a>
+          </p>
+        <a name="textmessageclassification"></a>
         <p class="heading">Part 1: Text Message Classification</p>
         <p class="body-text">
           We wanted to see how accurate BERT embeddings, specifically for whole sentences, were by seeing how accurately it
           could be used to classify text messages. We did this by using the vector embeddings to train a logistic regression model.
-        </p>
-        <a name="import1"></a>
+          </p>
+        <a name="importingpackagesandlibraries"></a>
         <p class="subheading">
           Importing packages and libraries
-        </p>
+          </p>
         <p class="body-text">
           We used transformers in order to use the DistilBert model, as well as several libraries including Pytorch, numpy, scikit and pandas.
-        </p>
+          </p>
         <p class="code">!pip install transformers
           <br>import numpy as np
           <br>import pandas as pd
@@ -47,14 +48,276 @@
           <br>from google.colab import files
           <br>from datetime import datetime as datetime
           <br>import io
-        </p>
-        <a name="uploadingprocessing"></a>
+          </p>
+        <a name="uploadingandprocessingdatafiles"></a>
         <p class="subheading">Uploading and processing data files</p>
+        <p class="body-text">
+          Here, we uploaded Reena's text messages .csv file (which was obtained from iMessage), and reading it into a pandas dataframe.
+          Additionally, we add a column called sender which has all values set to 0 to signify that these are Reena's texts.
+          </p>
+        <p class="body-text">
+          NOTE: We chose to upload the data sets from our local computers because the contents (our text messages) are private.
+          </p>
+        <p class="code">
+          uploaded_reena = files.upload()
+          <br>df_reena = pd.read_csv(io.StringIO(uploaded_reena['test.csv'].decode('utf-8', 'ignore')), error_bad_lines=False, names=['text', 'date'])
+          <br>df_reena['sender'] = [0]*len(df_reena.index)
+          </p>
+        <p class="body-text">
+          Since the date column of df_reena is currently stored as a float (nanoseconds since January 1, 2001), we had to convert each element in the column to a timestamp.
+          </p>
+        <p class="code">
+          offset = datetime(2001, 1, 1)
+          <br>u_epoch = datetime(1970, 1, 1)
+          <br>constant = (offset - u_epoch).total_seconds()
+          <br>def converter(t):
+          <br>&ensp;try:
+          <br>&ensp;&ensp;t = float(t)
+          <br>&ensp;&ensp;t /= 10 ** 9
+          <br>&ensp;&ensp;hours_offset = 2
+          <br>&ensp;&ensp;date = datetime.fromtimestamp(constant + t + hours_offset * 3600)
+          <br>&ensp;&ensp;return date.strftime("%Y-%m-%d %H:%M:%S %Z%z")
+          <br>&ensp;except Exception:
+          <br>&ensp;&ensp;pass
+          <br>df_reena['date'] = df_reena['date'].apply(lambda x: pd.to_datetime(converter(x)))
+        </p>
+        <p class="body-text">
+          Next, we uploaded a .json file containing all of Nisha's text messages. The file was downloaded from Facebook Messenger. Because of the abnormal format of the file, more cleaning had to be done.
+          </p>
+        <p class="code">
+          uploaded_nisha = files.upload()
+          </p>
+        <p class="body-text">
+          Clean is a helper method that deletes all uneccessary information from the .json file such as the reactions on a given message and what photos were sent.
+          </p>
+        <p class="code">
+          def clean(dic):
+          <br />&ensp;dic.pop("type", None)
+          <br />&ensp;dic.pop("reactions", None)
+          <br />&ensp;dic.pop("share", None)
+          <br />&ensp;dic.pop("ip", None)
+          <br />&ensp;dic.pop("sticker", None)
+          <br />&ensp;dic.pop("photos", None)
+          <br />&ensp;dic.pop("users", None)
+          <br />&ensp;dic.pop("call_duration", None)
+          <br />&ensp;dic.pop("videos", None)
+          <br />&ensp;dic.pop("gifs", None)
+          <br />&ensp;dic.pop("files", None)
+          <br />&ensp;dic.pop('missed', None)
+          <br />&ensp;dic.pop("audio_files", None)
+          </p>
+        <p class="body-text">
+          We read the contents of the .json file into a list called data. This method processes the dictionaries from data[1] ... the last element. In it, we delete all the extraneous data that the .json file gave us using the clean method. Also, we filtered to only include texts that Nisha sent.
+          </p>
+        <p class="code">
+          def addtoDf(dic):
+          <br />&ensp;del dic['participants']
+          <br />&ensp;del dic['title']
+          <br />&ensp;del dic['is_still_participant']
+          <br />&ensp;del dic['thread_type']
+          <br />&ensp;del dic['thread_path']
+          <br />
+          <br />&ensp;end = []
+          <br />
+          <br />&ensp;for element in dic['messages']:
+          <br />&ensp;&ensp;clean(element)
+          <br />&ensp;&ensp;if(element["sender_name"] == "Nisha Prabhakar"):
+          <br />&ensp;&ensp;&ensp;element.pop("sender_name")
+          <br />&ensp;&ensp;&ensp;end.append(element)
+          <br />
+          <br />&ensp;&ensp;with open("memory.json", "w") as write_file:
+          <br />&ensp;&ensp;&ensp;json.dump(end, write_file)
+          <br />
+          <br />&ensp;&ensp;return pd.read_json('memory.json')
+          </p>
+        <p class="body-text">
+          This method is called on the dictionaries in data[0]. Because the dictionary format is slightly different, we had to build a separate method to process it. It does roughly the same thing as addtoDf.
+          </p>
+        <p class="code">
+          def addtoDfFirst(dic):
+          <br />&ensp;clean(dic)
+          <br />
+          <br />&ensp;if (dic['sender_name'] != "Nisha Prabhakar"):
+          <br />&ensp;&ensp;return pd.DataFrame()
+          <br />
+          <br />&ensp;with open("memory.json", "w") as write_file:
+          <br />&ensp;&ensp;json.dump(dic, write_file)
+          <br />
+          <br />&ensp;return pd.read_json('memory.json', typ='series')
+          </p>
+        <p class="body-text">
+          This is the overarching procedure to clean the file uploaded_nisha and create one pandas dataframe that contains the data. When the data was loaded, we received a list (called data). The first element of data was a list itself, whose elements were dictionaries. On the other hand, the second element of data through the last element were dictionaries.
+          </p>
+        <p class="code">
+          import json
+          <br />with open('merged_file.json') as json_data:
+          <br />&ensp;data = json.load(json_data)
+          <br />&ensp;df_nisha = pd.DataFrame()
+          <br />&ensp;for dictionary in data[0]:
+          <br />&ensp;&ensp;df_new = addtoDfFirst(dictionary)
+          <br />&ensp;&ensp;df = df_nisha.append(df_new, ignore_index=True)
+          <br />&ensp;&ensp;df_nisha = df
+          <br />&ensp;for i in range(1, len(data)):
+          <br />&ensp;&ensp;df_new = addtoDf(data[i])
+          <br />&ensp;&ensp;df = df_nisha.append(df_new, ignore_index=True)
+          <br />&ensp;&ensp;df_nisha = df
+          </p>
+        <p class="body-text">
+          In order to match the formats of df_reena and df_nisha, we deleted the "sender_name" column and created a new column of all 1's, which identified the texts as being written by Nisha. Additionally, we changed the other two column names to match df_reena.
+          </p>
+        <p class="code">
+          del df_nisha['sender_name']
+          <br />df_nisha['sender'] = [1]*len(df_nisha.index)
+          <br />df_nisha.columns=['text', 'date', 'sender']
+          <br />df_nisha.head()
+          </p>
+        <p class="body-text">
+          Since there were some irregularities in Nisha's message file (some of the text messages were not of the String datatype), we iterated through each text and deleted the offending texts.
+          </p>
+        <p class="code">
+          df_nisha = df_nisha[11:]
+          <br />dropped = []
+          <br />for index, row in df_nisha.iterrows():
+          <br />&ensp;if not isinstance(row['text'], str):
+          <br />&ensp;&ensp;dropped.append(index)
+          <br />
+          <br />df_nisha = df_nisha.drop(dropped)
+          <br />df_nisha=df_nisha.sort_values(by=['date'])
+          </p>
+        <p class="body-text">
+          For performance purposes we only used the most recent 2000 texts. We also concatenated df_nisha and df_reena and sorted the resulting df_total by date.
+          </p>
+        <p class="code">
+          df_nisha_short = df_nisha[-2000:]
+          <br />df_reena_short = df_reena[-2000:]
+          <br />df = df_reena_short.append(df_nisha_short, ignore_index=True)
+          <br />df_total = df_reena.append(df_nisha, ignore_index=True)
+          <br />df_total=df_total.sort_values(by=['date'])
+          </p>
+        <a name="extractingdistilbertembeddings"></a>
+        <p class="subheading">
+          Extracting DistilBert embeddings
+          </p>
+        <p class="body-text">
+          We followed <a href="https://jalammar.github.io/a-visual-guide-to-using-bert-for-the-first-time/">this</a>
+          tutorial by Jay Alammar for the DistilBERT analysis.
+          </p>
+        <p class="body-text">
+          We began by loading in the DistilBERT model and other relevant classes.
+          </p>
+        <p class="code">
+          model_class, tokenizer_class, pretrained_weights = (ppb.DistilBertModel, ppb.DistilBertTokenizer, 'distilbert-base-uncased')
+          <br />tokenizer = tokenizer_class.from_pretrained(pretrained_weights)
+          <br />model = model_class.from_pretrained(pretrained_weights)
+          </p>
+        <p class="body-text">
+          This method completely encodes all of the texts, from words to integer id's. After adding the special "[CLS]" and "[SEP]" tokens at the beginning and end of the texts, we tokenized the texts. The tokenizer splits up words that are not in its default dictionary into smaller parts and assigns them their associated id. Although initially we chose to maximize the length of our tokenized text array (512), this caused extracting the embeddings to use far too much RAM. We realized that only 6 of texts had more than 50 tokens, so we decided to set 50 as the maximum length of a tokenized text message.
+          </p>
+        <p class="code">
+          def modified_encoder(x):
+          <br />&ensp;marked_text = "[CLS] " + x + " [SEP]"
+          <br />&ensp;tokenized_text = tokenizer.tokenize(marked_text)
+          <br />&ensp;indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text[:50])
+          <br />&ensp;return indexed_tokens
+          <br />
+          <br />tokenized = df['text'].apply(modified_encoder)
+          </p>
+        <p class="body-text">
+          Here, we convert our list of tokenized texts (each text is represented as a list) into a two dimensional numpy array. This allows us to calculate the embeddings of all the texts at once.
+          </p>
+        <p class="code">
+          max_len = 0
+          <br />for i in tokenized.values:
+          <br />&ensp;if len(i) > max_len:
+          <br />&ensp;&ensp;max_len = len(i)
+          <br />
+          <br />padded = np.array([i + [0]*(max_len-len(i)) for i in tokenized.values])
+          </p>
+        <p class="body-text">
+          Our array padded is a uniform array where each text is represented by an array of integers of size 50. However, we need to tell BERT to ignore the extra 0's padded onto texts whose length is less than 50, so we created an array of integers called the attention_mask.
+          </p>
+        <p class="code">
+          attention_mask = np.where(padded != 0, 1, 0)
+          </p>
+        <p class="body-text">
+          We retrieve the embeddings from the model by converting padded and attention_mask into tensors and passing them into our model.
+          </p>
+        <p class="code">
+          input_ids = torch.tensor(padded)
+          <br />attention_mask = torch.tensor(attention_mask)
+          <br />with torch.no_grad():
+          <br />&ensp;last_hidden_states = model(input_ids, attention_mask=attention_mask)
+          </p>
+        <a name="creatingandtrainingscikitmodel"></a>
+        <p class="subheading">
+          Creating and training scikit model
+          </p>
+        <p class="body-text">
+          We currently have embeddings for each word in each text. We use the first element of last_hidden_states, which is the last layer of the neural network.
+          In order to consolidate this data into one embedding for each text, we use the embedding for the "[CLS]" token, which is the first token and often used to represent the sentence as a whole.
+          </p>
+        <p class="code">
+          features = last_hidden_states[0][:,0,:].numpy()
+          </p>
+        <p class="body-text">
+          Here we split our data into training and testing data
+          </p>
+        <p class="code">
+          labels = df['sender']
+          <br />train_features, test_features, train_labels, test_labels = train_test_split(features, labels)
+          </p>
+        <p class="body-text">
+          Obtaining the logistic regression classifier and fitting it with our data was quite simple.
+          </p>
+        <p class="code">
+          lr_clf = LogisticRegression()
+          <br />lr_clf.fit(train_features, train_labels)
+          </p>
+        <p class="body-text">
+          We used test_features and test_labels to see how well our model scored against the testing data. It does fairly well, with an accuracy of about 81.4%.
+          </p>
+        <p class="code">
+          lr_clf.score(test_features, test_labels)
+          </p>
+        <a name="testingourmodelwithinputs"></a>
+        <p class="subheading">
+          Testing our model with inputs
+          </p>
+        <p class="body-text">
+          The prepare method converts a text string to its embeddings. This is necessary to prepare the texts to feed into our model, which is based on vectors, not strings.
+          </p>
+        <p class="code">
+          def prepare(x):
+          <br />&ensp;tokenized = tokenizer.encode(x, add_special_tokens=True)
+          <br />&ensp;input_ids = torch.tensor([tokenized])
+          <br />&ensp;with torch.no_grad():
+          <br />&ensp;&ensp;last_hidden_states = model(input_ids)
+          <br />&ensp;return last_hidden_states[0][0][0].unsqueeze(0).numpy()
+          </p>
+        <p class="body-text">
+          The guess method calls on our model to predict who wrote the given text, and then interprets the integer returned back to a string with the person's name.
+          </p>
+        <p class="code">
+          def guess():
+          <br />&ensp;x = input("Enter a text!")
+          <br />&ensp;sender = lr_clf.predict(prepare(x))[0]
+          <br />&ensp;if sender == 1:
+          <br />&ensp;&ensp;return 'nisha'
+          <br />&ensp;else:
+          <br />&ensp;&ensp;return 'reena'
+          <br />
+          <br />guess()
+          </p>
+
+
       </div>
-      <div class="col-md-3" id="sticky-sidebar">
-        <a href="#part1">1. Text Message Classification</a>
-        &nbsp;&nbsp;&nbsp;&nbsp;<a href="#import1">Importing packages and libraries</a>
-        &nbsp;&nbsp;&nbsp;&nbsp;<a href="#uploadingprocessing">Uploading and processing data files</a>
+      <div class="col-md-3" id="my-sidebar">
+        <a href="#textmessageclassification">1. Text Message Classification</a>
+        <br />&ensp;<a href="#importingpackagesandlibraries">Importing packages and libraries</a>
+        <br />&ensp;<a href="#uploadingandprocessingdatafiles">Uploading and processing data files</a>
+        <br />&ensp;<a href="#extractingdistilbertembeddings">Extracting DistilBert embeddings</a>
+        <br />&ensp;<a href="#creatingandtrainingscikitmodel">Creating and training scikit model</a>
+        <br />&ensp;<a href="#testingourmodelwithinputs">Testing our model with inputs</a>
 
       </div>
     </div>
