@@ -27,7 +27,7 @@
           We wanted to see how accurate BERT embeddings, specifically for whole sentences, were by seeing how accurately it
           could be used to classify text messages. We did this by using the vector embeddings to train a logistic regression model.
           </p>
-        <a name="importingpackagesandlibraries"></a>
+        <a name="importingpackagesandlibraries1"></a>
         <p class="subheading">
           Importing packages and libraries
           </p>
@@ -64,23 +64,11 @@
           <br>df_reena['sender'] = [0]*len(df_reena.index)
           </p>
         <p class="body-text">
-          Since the date column of df_reena is currently stored as a float (nanoseconds since January 1, 2001), we had to convert each element in the column to a timestamp.
+          Since the date column of df_reena is currently stored as a string, we had to convert each element in the column to a timestamp.
           </p>
         <p class="code">
-          offset = datetime(2001, 1, 1)
-          <br>u_epoch = datetime(1970, 1, 1)
-          <br>constant = (offset - u_epoch).total_seconds()
-          <br>def converter(t):
-          <br>&ensp;try:
-          <br>&ensp;&ensp;t = float(t)
-          <br>&ensp;&ensp;t /= 10 ** 9
-          <br>&ensp;&ensp;hours_offset = 2
-          <br>&ensp;&ensp;date = datetime.fromtimestamp(constant + t + hours_offset * 3600)
-          <br>&ensp;&ensp;return date.strftime("%Y-%m-%d %H:%M:%S %Z%z")
-          <br>&ensp;except Exception:
-          <br>&ensp;&ensp;pass
-          <br>df_reena['date'] = df_reena['date'].apply(lambda x: pd.to_datetime(converter(x)))
-        </p>
+          df_reena['date'] = df_reena['date'].apply(lambda x: pd.to_datetime(x))
+          </p>
         <p class="body-text">
           Next, we uploaded a .json file containing all of Nisha's text messages. The file was downloaded from Facebook Messenger. Because of the abnormal format of the file, more cleaning had to be done.
           </p>
@@ -308,16 +296,76 @@
           <br />
           <br />guess()
           </p>
+        <a name="visualizingbertembeddings"></a>
+        <p class="heading">
+          Part 2: Visualizing BERT Embeddings
+          </p>
+        <p class="body-text">
+          Here, we used T-SNE in order to reduce the length of our embeddings from length 768 to 2. This way we were able to visualize our sentence embeddings by plotting them on a 2-D graph.
+          </p>
+        <a name="importingpackagesandlibraries2"></a>
+        <p class="subheading">
+          Importing packages and libraries
+          </p>
+        <p class="body-text">
+          We used the ski-kit machine learning library for T-SNE and matplotlib to graph our points.
+          </p>
+        <p class="code">
+          from sklearn.manifold import TSNE
+          <br>import matplotlib.pyplot as plt
+          <br>from matplotlib.pyplot import figure
+          </p>
+        <a name="splittingupourdataset"></a>
+        <p class="subheading">
+          Splitting up our dataset
+          </p>
+        <p class="body-text">
+          Due to the COVID-19 pandemic, our daily lives were significantly impacted, especially when our second semester went remote. Assuming our text messages would reflect this change, we wanted to see how our texts would look before shelter-in-place, during shelter-in-place, and after summer break started. As a result, we split up our dataset accordingly into three parts. We also had to change the step size for each dataframe in order to keep our number of texts to be around 4000.
+          </p>
+        <p class="code">
+          spring_semester = datetime(2020, 1, 20)
+          <br>covid = datetime(2020, 3, 9)
+          <br />summer_break = datetime(2020, 5, 15)
+          <br />df_precovid = df_total[(df_total['date'] > spring_semester) & (df_total['date'] < covid)].iloc[::2, :]
+          <br />df_postcovid = df_total[(df_total['date'] > covid) & (df_total['date'] < summer_break)].iloc[::7, :]
+          <br />df_summer = df_total[df_total['date'] > summer_break].iloc[::2, :]
+          </p>
+        <a name="embeddingandgraphing"></a>
+        <p class="subheading">
+          Embedding and graphing
+          </p>
+        <p class="body-text">
+          We got our sentence embeddings the same way as we did for text classification above. The graph function then uses the embeddings and authors returned by the embed function to plot the texts. The color of each point on the graph is determined by the author.
+          </p>
+        <p class="code">
+          def graph(points, senders, title):
+          <br />&ensp;two_points = TSNE(n_components=2).fit_transform(points)
+          <br />&ensp;figure(figsize=(6,6))
+          <br />&ensp;for i, sender in enumerate(senders):
+          <br />&ensp;&ensp;if sender == 1:
+          <br />&ensp;&ensp;&ensp;plt.scatter(two_points[i][0], two_points[i][1], marker='.', c='b')
+          <br />&ensp;&ensp;else:
+          <br />&ensp;&ensp;&ensp;plt.scatter(two_points[i][0], two_points[i][1], marker='.', c='r')
+          <br />&ensp;plt.axis([-120, 120, -120, 120])
+          <br />&ensp;plt.title(title)
+          <br />&ensp;plt.show
+          </p>
+
+
 
 
       </div>
       <div class="col-md-3" id="my-sidebar">
         <a href="#textmessageclassification">1. Text Message Classification</a>
-        <br />&ensp;<a href="#importingpackagesandlibraries">Importing packages and libraries</a>
+        <br />&ensp;<a href="#importingpackagesandlibraries1">Importing packages and libraries</a>
         <br />&ensp;<a href="#uploadingandprocessingdatafiles">Uploading and processing data files</a>
         <br />&ensp;<a href="#extractingdistilbertembeddings">Extracting DistilBert embeddings</a>
         <br />&ensp;<a href="#creatingandtrainingscikitmodel">Creating and training scikit model</a>
         <br />&ensp;<a href="#testingourmodelwithinputs">Testing our model with inputs</a>
+        <br /><a href="#visualizingbertembeddings">2. Visualizing BERT Embeddings</a>
+        <br />&ensp;<a href="#importingpackagesandlibraries2">Importing packages and libraries</a>
+        <br />&ensp;<a href="#splittingupourdataset">Splitting up our dataset</a>
+        <br />&ensp;<a href="#embeddingandgraphing">Embedding and graphing</a>
 
       </div>
     </div>
